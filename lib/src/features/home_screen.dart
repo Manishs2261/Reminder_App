@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:reminder_app/src/Model/work_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,6 +13,43 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   TimeOfDay initialTime = TimeOfDay.now();
+  String selectedDay = "";
+  String selectedDayOfWork = "";
+  late SharedPreferences sharedPreferences ;
+  List<WorkModel> workModel = List.empty(growable: true);
+
+  getSharePreferences()async{
+     sharedPreferences = await SharedPreferences.getInstance();
+     readFromSharePreferences();
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getSharePreferences();
+    super.initState();
+  }
+
+  saveIntoSharePreferences(){
+   List<String> saveList =  workModel.map((e) => jsonEncode(e.toJson())).toList();
+   sharedPreferences.setStringList("uaerData", saveList);
+  }
+
+  readFromSharePreferences(){
+
+    List<String>?readList = sharedPreferences.getStringList("userData");
+    if(readList != null){
+
+      workModel = readList.map((e) => WorkModel.fromJson(json.decode(e))).toList();
+    }
+    setState(() {
+
+    });
+
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -60,34 +101,42 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.only(left: 8, right: 8, top: 20),
                     child: Column(
                       children: [
-                        Container(
-                          padding: EdgeInsets.all(10),
-                          height: 80,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(color: Colors.grey.shade600, spreadRadius: 0.8),
-                              ],
-                              color: Colors.grey.shade800),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text("07.55 AM",style: TextStyle(color: Colors.white,fontSize: 24),),
-                                  SizedBox(width: 15,),
-                                  Text("Monday",style: TextStyle(color: Colors.white70,fontSize: 16),),
 
-                                ],
-                              ),
+                        ListView.builder(
+                                itemCount: workModel.length,
+                            shrinkWrap: true,
+                            itemBuilder: (context,index){
 
-                              Text("Go to Office",style: TextStyle(color: Colors.white60,fontSize: 20),),
+                              return  Container(
+                                padding: EdgeInsets.all(10),
+                                height: 80,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(color: Colors.grey.shade600, spreadRadius: 0.8),
+                                    ],
+                                    color: Colors.grey.shade800),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text("07.55 AM",style: TextStyle(color: Colors.white,fontSize: 24),),
+                                        SizedBox(width: 15,),
+                                        Text("Monday",style: TextStyle(color: Colors.white70,fontSize: 16),),
 
-                            ],
-                          ),
-                        ),
+                                      ],
+                                    ),
+
+                                    Text("Go to Office",style: TextStyle(color: Colors.white60,fontSize: 20),),
+
+                                  ],
+                                ),
+                              );
+                        })
+
                       ],
                     ),
                   ),
@@ -122,6 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }).toList(),
                             onChanged: (day) {
+
+                              selectedDay = day!;
                               // Handle day selection
                             },
                           ),
@@ -187,14 +238,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               'Go to library',
                               'Dinner',
                               'Go to sleep',
-                            ].map((day) {
+                            ].map((workActivity) {
                               return DropdownMenuItem<String>(
-                                value: day,
-                                child: Text(day),
+                                value: workActivity,
+                                child: Text(workActivity),
                               );
                             }).toList(),
-                            onChanged: (day) {
+                            onChanged: (workActivity) {
                               // Handle day selection
+                              selectedDayOfWork = workActivity!;
                             },
                           ),
                         ),
@@ -208,7 +260,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.grey.shade700,
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+
+                                  setState(() {
+
+                                    workModel.add(WorkModel(dayName: selectedDay,dayOfWork: selectedDayOfWork,time:
+                                        initialTime.toString()));
+                                    print("save ");
+                                  });
+
+                                  saveIntoSharePreferences();
+
+                                },
                                 child: Text(
                                   "Set Reminder",
                                   style: TextStyle(fontSize: 16),
