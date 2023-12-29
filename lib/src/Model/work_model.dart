@@ -1,21 +1,19 @@
 class WorkModel {
-  String? dayName;
-  String? time;
-  String? dayOfWork;
+  String dayOfName;
+  String dayOfWork;
+  String time;
+  WorkModel({required this.dayOfName, required this.dayOfWork,required this.time});
 
-  WorkModel({this.dayName, this.time, this.dayOfWork});
+  factory WorkModel.fromJson(Map<String, dynamic> json) => WorkModel(
+    dayOfName: json["dayOfName"],
+    dayOfWork: json["dayOfWork"],
+    time: json["time"],
+  );
 
-  WorkModel.fromJson(Map<String, dynamic> json) {
-    dayName = json['dayName'];
-    time = json['time'];
-    dayOfWork = json['dayOfWork'];
-  }
+  Map<String, dynamic> toJson() => {
+    "dayOfName": dayOfName,
+    "dayOfWork": dayOfWork,
+    "time": time,
+  };
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['dayName'] = this.dayName;
-    data['time'] = this.time;
-    data['dayOfWork'] = this.dayOfWork;
-    return data;
-  }
 }
